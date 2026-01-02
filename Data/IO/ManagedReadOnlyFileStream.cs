@@ -6,11 +6,12 @@ public sealed partial class ReadOnlyFileStreamProprietor
     /// Represents a file stream whose unmanaged resources are partially controlled by another class
     /// </summary>
     private sealed partial class ManagedReadOnlyFileStream(Guid trackingId, string path, FileStreamOptions options)
-        : ReadOnlyFileStream(path, options)
-    {   
-        public event EventHandler<DisposeRequestedArgs>? DisposeRequested;
-        public Guid TrackingId { get; } = trackingId;
+        : ReadOnlyFileStream(path, options), IManageableStream
+    {
+        public event EventHandler<DisposeRequestedArgs>? DisposeRequestHandler;
         public DateTime LastActivity { get; private set; } = DateTime.Now;
+
+        public Guid TrackingId { get; } = trackingId;
 
         public override int Read(byte[] buffer, int offset, int count)
         {
@@ -39,7 +40,7 @@ public sealed partial class ReadOnlyFileStreamProprietor
 
         private void OnDisposeRequested(DisposeRequestedArgs args)
         {
-            DisposeRequested?.Invoke(this, args);
+            DisposeRequestHandler?.Invoke(this, args);
         }
 
         public override void Dispose()
@@ -47,14 +48,14 @@ public sealed partial class ReadOnlyFileStreamProprietor
             if (Disposed) return;
             Stream.Dispose();
             Disposed = true;
-            OnDisposeRequested(new DisposeRequestedArgs());
+            OnDisposeRequested(new DisposeRequestedArgs(TrackingId));
         }
 
         public override ValueTask DisposeAsync()
         {
             if (Disposed) return default;
             Disposed = true;
-            OnDisposeRequested(new DisposeRequestedArgs());
+            OnDisposeRequested(new DisposeRequestedArgs(TrackingId));
             return Stream.DisposeAsync();
         }
     }

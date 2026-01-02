@@ -32,7 +32,7 @@ public sealed partial class ReadOnlyFileStreamProprietor : IFileStreamProprietor
     {
         var newGuid = Guid.CreateVersion7();
         var newStream = new ManagedReadOnlyFileStream(newGuid, path, streamOptions);
-        newStream.DisposeRequested += HandleDisposeRequest;
+        newStream.DisposeRequestHandler += HandleDisposeRequest;
         _openedStreams.TryAdd(newGuid, newStream);
 
         return newStream;
