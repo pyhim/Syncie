@@ -19,20 +19,14 @@ public static class FilePartitioner
         var sectorsCount = (int)Math.Ceiling((double) fileInfo.Length / defaultSectorLength);
         var sectors = new Sector[sectorsCount];
 
-        var remainingSpace = fileInfo.Length;
-        var start = 0;
-        for (var i = 0;; i++)
+        int k = 0, start = 0;
+        for (var i = sectorsCount - 1; i > 0; i--, k++, start += defaultSectorLength)
         {
-            if (remainingSpace <= defaultSectorLength)
-            {
-                sectors[i] = new Sector(start, (int)remainingSpace);
-                break;
-            }
-
-            sectors[i] = new Sector(start, defaultSectorLength);
-            start += defaultSectorLength;
-            remainingSpace -= defaultSectorLength;
+            sectors[k] = new Sector(start, defaultSectorLength);
         }
+        
+        var lastSectorLength = defaultSectorLength - ((sectorsCount * defaultSectorLength) - fileInfo.Length);
+        sectors[k] = new Sector(start, (int)lastSectorLength);
 
         return new PartitionedFile
         {
