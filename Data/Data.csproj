@@ -17,6 +17,7 @@
 
     <ItemGroup>
       <Compile Remove="obj\**" />
+      <Compile Remove="Cryptography\DataHasher.cs" />
     </ItemGroup>
 
     <ItemGroup>
@@ -25,6 +26,10 @@
 
     <ItemGroup>
       <None Remove="obj\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Utilities\Utilities.csproj" />
     </ItemGroup>
 
 </Project>

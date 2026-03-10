@@ -9,30 +9,32 @@ public static class FilePartitioner
     {
         var fileInfo = new FileInfo(filePath);
         var fileSizeTier = FileSizeClassifier.Classify(fileInfo.Length);
-        int defaultSectorLength;
 
-        if (fileSizeTier == FileSizeTier.Insignificant) 
-            defaultSectorLength = (int)fileInfo.Length;
-        else 
-            defaultSectorLength = EvaluateOptimalSectorLength(fileSizeTier);
-        
-        var sectorsCount = (int)Math.Ceiling((double) fileInfo.Length / defaultSectorLength);
+        var defaultSectorLength = fileSizeTier switch
+        {
+            FileSizeTier.Insignificant => (int)fileInfo.Length,
+            _ => EvaluateOptimalSectorLength(fileSizeTier)
+        };
+
+        var sectorsCount = (int)Math.Ceiling((double)fileInfo.Length / defaultSectorLength);
         var sectors = new Sector[sectorsCount];
 
-        int k = 0, start = 0;
-        for (var i = sectorsCount - 1; i > 0; i--, k++, start += defaultSectorLength)
+        int i, start = 0;
+        for (i = 0; i < sectorsCount - 1; i++)
         {
-            sectors[k] = new Sector(start, defaultSectorLength);
+            sectors[i] = new Sector(start, defaultSectorLength);
+            start += defaultSectorLength;
         }
-        
+
         var lastSectorLength = defaultSectorLength - ((sectorsCount * defaultSectorLength) - fileInfo.Length);
-        sectors[k] = new Sector(start, (int)lastSectorLength);
+        sectors[i] = new Sector(start, (int)lastSectorLength);
 
         return new PartitionedFile
         {
             Path = fileInfo.FullName,
             Length = fileInfo.Length,
-            Sectors = new Sectors(sectors, SectorsAlignment.Contiguous) // This method guarantees to return only contiguous sectors.
+            Sectors = new Sectors(sectors,
+                SectorsAlignment.Contiguous) // This method guarantees to return only contiguous sectors.
         };
     }
 

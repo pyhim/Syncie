@@ -1,8 +1,8 @@
-namespace Syncie.Data.Fragmentation;
+namespace Syncie.Data.Partitioning;
 
 internal enum FileSizeTier
 {
-    /// <remarks>File size is less than 8KB and insufficient to be fragmentated.</remarks>
+    /// <remarks>File size is less than 8KB and ineligible for fragmentation.</remarks>
     Insignificant,
     /// <remarks>From 8KB to 512KB.</remarks>
     Micro,

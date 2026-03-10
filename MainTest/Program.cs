@@ -2,7 +2,7 @@
 
 using Syncie.Data.Fragmentation;
 
-var fragmentator = new DataFragmentator();
+var fragmentator = new FileFragmentator();
 var fragFile = await fragmentator.FragmentateAsync(
     new FileInfo("lorem.txt"));
 Console.WriteLine(fragFile);

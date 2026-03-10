@@ -1,4 +1,4 @@
-namespace Syncie.Data.Fragmentation;
+namespace Syncie.Data.Partitioning;
 
 internal static class FileSizeClassifier
 {

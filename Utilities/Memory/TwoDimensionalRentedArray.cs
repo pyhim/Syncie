@@ -8,7 +8,7 @@ namespace Syncie.Utilities.Memory;
 /// </summary>
 /// <typeparam name="T">The type of array</typeparam>
 /// <remarks>This class is actually implemented as a 1D array but with 2D convenience tools.</remarks>
-public sealed class TwoDimensionalRentedArray<T> : ICollection, ITwoDimensionalCollection<T>, IEnumerable<Span<T>>,
+public sealed class TwoDimensionalRentedArray<T> : ICollection, ITwoDimensionalCollection<T>, IEnumerable<Memory<T>>,
     IDisposable
 {
     private readonly T[] _array;
@@ -23,15 +23,19 @@ public sealed class TwoDimensionalRentedArray<T> : ICollection, ITwoDimensionalC
     {
         get
         {
-            ThrowIfIndexOutOfRange(row * column);
-            return _array[row * column];
+            var index = CalculateIndex(row, column);
+            ThrowIfIndexOutOfRange(index);
+            return _array[index];
         }
         set
         {
-            ThrowIfIndexOutOfRange(row * column);
-            _array[row * column] = value;
+            var index = CalculateIndex(row, column);
+            ThrowIfIndexOutOfRange(index);
+            _array[index] = value;
         }
     }
+    
+    private int CalculateIndex(int row, int column) => row * Columns + column;
 
     /// <summary>
     /// Initializes a new two-dimensional array that is rented from an <see cref="ArrayPool{T}"/>.
@@ -45,7 +49,7 @@ public sealed class TwoDimensionalRentedArray<T> : ICollection, ITwoDimensionalC
         Columns = columns;
     }
 
-    public Span<T> GetRowAsSpan(int row) => _array.AsSpan(row, Columns);
+    public Span<T> GetRowAsSpan(int row) => _array.AsSpan(row * Columns, Columns);
 
     private void ThrowIfIndexOutOfRange(int index)
     {
@@ -72,12 +76,12 @@ public sealed class TwoDimensionalRentedArray<T> : ICollection, ITwoDimensionalC
     /// Gets the enumerator for the rows of the array.
     /// </summary>
     /// <returns>An enumerator instance.</returns>
-    public IEnumerator<Span<T>> GetEnumerator()
+    public IEnumerator<Memory<T>> GetEnumerator()
     {
         return new Enumerator(_array, Columns);
     }
 
-    private class Enumerator(T[] array, int columns) : IEnumerator<Span<T>>
+    private class Enumerator(T[] array, int columns) : IEnumerator<Memory<T>>
     {
         private int _index = -columns;
 
@@ -90,11 +94,11 @@ public sealed class TwoDimensionalRentedArray<T> : ICollection, ITwoDimensionalC
 
         public void Reset() => _index = -columns;
 
-        Span<T> IEnumerator<Span<T>>.Current => Current;
+        Memory<T> IEnumerator<Memory<T>>.Current => Current;
 
         object? IEnumerator.Current => new Memory<T>(array, _index, columns);
 
-        private Span<T> Current => new(array, _index, columns);
+        private Memory<T> Current => new(array, _index, columns);
 
         public void Dispose()
         {

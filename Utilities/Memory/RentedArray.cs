@@ -6,8 +6,9 @@ namespace Syncie.Utilities.Memory;
 public sealed class RentedArray<T> : ICollection, IRentedArray<T>, IList<T>, IDisposable
 {
     private readonly T[] _array;
-    
-    public int Count { get; }
+
+    public int Length { get; }
+    public int Count => Length;
     public bool IsSynchronized => _array.IsSynchronized; // Note: Always false.
     public object SyncRoot => _array.SyncRoot;
     public bool IsReadOnly => false;
@@ -30,10 +31,12 @@ public sealed class RentedArray<T> : ICollection, IRentedArray<T>, IList<T>, IDi
     public RentedArray(int length)
     {
         _array = ArrayPool<T>.Shared.Rent(length);
-        Count = length;
+        Length = length;
     }
     
     public Memory<T> AsMemory() => new(_array, 0, Count);
+
+    public Memory<T> AsMemory(int length) => new(_array, 0, length);
 
     public void Add(T item) => throw new NotSupportedException();
 
