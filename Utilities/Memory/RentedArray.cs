@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace Syncie.Utilities.Memory;
 
-public sealed class RentedArray<T> : ICollection, IRentedArray<T>, IList<T>, IDisposable
+public sealed class RentedArray<T> : ICollection, IMemoryOwner<T>, IList<T>, IDisposable
 {
     private readonly T[] _array;
 
@@ -12,6 +12,7 @@ public sealed class RentedArray<T> : ICollection, IRentedArray<T>, IList<T>, IDi
     public bool IsSynchronized => _array.IsSynchronized; // Note: Always false.
     public object SyncRoot => _array.SyncRoot;
     public bool IsReadOnly => false;
+    public Memory<T> Memory => AsMemory();
 
     public T this[int index]
     {
@@ -20,7 +21,7 @@ public sealed class RentedArray<T> : ICollection, IRentedArray<T>, IList<T>, IDi
             ThrowIfIndexOutOfRange(index);
             return _array[index];
         }
-        
+
         set
         {
             ThrowIfIndexOutOfRange(index);
@@ -28,12 +29,16 @@ public sealed class RentedArray<T> : ICollection, IRentedArray<T>, IList<T>, IDi
         }
     }
 
+    /// <summary>
+    /// Creates an array that is rented from an <see cref="ArrayPool{T}"/>
+    /// </summary>
+    /// <param name="length">The desirable length of the array.</param>
     public RentedArray(int length)
     {
         _array = ArrayPool<T>.Shared.Rent(length);
         Length = length;
     }
-    
+
     public Memory<T> AsMemory() => new(_array, 0, Count);
 
     public Memory<T> AsMemory(int length) => new(_array, 0, length);
@@ -43,7 +48,7 @@ public sealed class RentedArray<T> : ICollection, IRentedArray<T>, IList<T>, IDi
     public void Clear() => ((IList<T>)_array).Clear();
 
     public bool Contains(T item) => _array.Contains(item);
-    
+
     public bool Remove(T item) => ((IList<T>)_array).Remove(item);
 
     public int IndexOf(T item) => _array.IndexOf(item);
@@ -51,7 +56,7 @@ public sealed class RentedArray<T> : ICollection, IRentedArray<T>, IList<T>, IDi
     public void Insert(int index, T item) => ((IList<T>)_array).Insert(index, item);
 
     public void RemoveAt(int index) => ((IList<T>)_array).RemoveAt(index);
-    
+
     public void CopyTo(T[] array, int arrayIndex) => _array.CopyTo(array, arrayIndex);
 
     public void CopyTo(Array array, int index) => _array.CopyTo(array, index);
