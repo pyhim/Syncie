@@ -18,24 +18,21 @@ public static class FilePartitioner
 
         var sectorsCount = (int)Math.Ceiling((double)fileInfo.Length / defaultSectorLength);
         var sectors = new Sector[sectorsCount];
-
+        // var sectors = new SortedSet<Sector>();
+        
         int i, start = 0;
         for (i = 0; i < sectorsCount - 1; i++)
         {
             sectors[i] = new Sector(start, defaultSectorLength);
+            // sectors.Add(new Sector(start, defaultSectorLength));
             start += defaultSectorLength;
         }
 
         var lastSectorLength = defaultSectorLength - ((sectorsCount * defaultSectorLength) - fileInfo.Length);
         sectors[i] = new Sector(start, (int)lastSectorLength);
+        // sectors.Add(new Sector(start, (int)lastSectorLength));
 
-        return new PartitionedFile
-        {
-            Path = fileInfo.FullName,
-            Length = fileInfo.Length,
-            Sectors = new Sectors(sectors,
-                SectorsAlignment.Contiguous) // This method guarantees to return only contiguous sectors.
-        };
+        return new PartitionedFile(fileInfo.FullName, fileInfo.Length, sectors);
     }
 
     private static int EvaluateOptimalSectorLength(FileSizeTier fileSizeTier) => fileSizeTier switch
